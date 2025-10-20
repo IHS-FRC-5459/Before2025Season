@@ -13,6 +13,7 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -43,6 +44,8 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Vision vision;
+  // Sensors
+  private Pigeon2 pigeon;
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
 
@@ -61,7 +64,8 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        vision = new Vision();
+        pigeon = new Pigeon2(Constants.Sensors.Pigeon.id, Constants.Sensors.Pigeon.canbus);
+        vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
         break;
 
       case SIM:
@@ -73,7 +77,8 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision = new Vision();
+        pigeon = new Pigeon2(Constants.Sensors.Pigeon.id, Constants.Sensors.Pigeon.canbus);
+        vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
 
         break;
 
@@ -86,7 +91,8 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision();
+        pigeon = new Pigeon2(Constants.Sensors.Pigeon.id, Constants.Sensors.Pigeon.canbus);
+        vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
 
         break;
     }
