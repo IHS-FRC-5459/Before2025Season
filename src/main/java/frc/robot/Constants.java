@@ -34,4 +34,10 @@ public final class Constants {
     /** Replaying from a log file. */
     REPLAY
   }
+
+  public static class Vision {}
+
+  public static class Sensors {
+    public static int pigeonId = 15;
+  }
 }
