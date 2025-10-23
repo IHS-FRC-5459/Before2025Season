@@ -53,7 +53,7 @@ public class Vision extends SubsystemBase {
   //To be implimented. Will update fusedPose and fusedStdDevs
   public void fuse(Pose2d[] poses, Matrix<N3, N1>[] stdDevsArray) {
      
-  }
+  } 
   public Pose2d getFusedPose() {
     return fusedPose;
   }
