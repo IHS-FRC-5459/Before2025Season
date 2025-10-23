@@ -13,6 +13,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -35,9 +38,25 @@ public final class Constants {
     REPLAY
   }
 
-  public static class Vision {}
+  public static class Vision {
+    public static final String[] cameraNames = {"left", "right"};
+    public static final Translation2d[] moduleTranslations =new Translation2d[]{
+
+    };
+    public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
+    public static final SwerveModulePosition[] lastModulePositions = // For delta tracking
+        new SwerveModulePosition[] {
+          new SwerveModulePosition(),
+          new SwerveModulePosition(),
+          new SwerveModulePosition(),
+          new SwerveModulePosition()
+        };
+  }
 
   public static class Sensors {
-    public static int pigeonId = 15;
+    public static class Pigeon {
+      public static final int id = 15;
+      public static final String canbus = "rio";
+    }
   }
 }
