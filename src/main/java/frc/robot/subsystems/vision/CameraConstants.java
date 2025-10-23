@@ -1,5 +1,7 @@
 package frc.robot.subsystems.vision;
 
+import java.util.HashMap;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -9,52 +11,32 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 
 public class CameraConstants {
-  private String camName;
+  public final String kCameraName;
+    public final Matrix<N3, N1> kMultiTagStdDevs;
+    public final Transform3d kRobotToCam;
+    public final Matrix<N3, N1> kSingleTagStdDevs;
 
-  public CameraConstants(String kCameraName) {
-    this.camName = camName;
+    public static final HashMap<String, CameraConstants> cameras = new HashMap<String, CameraConstants>();
+
+
+  public CameraConstants(
+    String kCameraName,
+    Matrix<N3, N1> kMultiTagStdDevs,
+    Transform3d kRobotToCam,
+    Matrix<N3, N1> kSingleTagStdDevs
+  ) {
+   this.kCameraName =kCameraName;
+    this.kMultiTagStdDevs = kMultiTagStdDevs;
+    this.kRobotToCam = kRobotToCam;
+    this.kSingleTagStdDevs = kSingleTagStdDevs;
   }
 
-  public String getkCameraName() {
-    if (LeftCam.kCameraName.equals(camName)) {
-      return LeftCam.kCameraName;
-    }
-    if (RightCam.kCameraName.equals(camName)) {
-      return RightCam.kCameraName;
-    }
-    return "";
+  static {
+    cameras.put("left", new CameraConstants("left", VecBuilder.fill(0.5, 0.5, 1), null, null));
+    cameras.put("right", new CameraConstants(null, null, null, null));
   }
 
-  public Matrix<N3, N1> getkMultiTagStdDevs() {
-    if (LeftCam.kCameraName.equals(camName)) {
-      return LeftCam.kMultiTagStdDevs;
-    }
-    if (RightCam.kCameraName.equals(camName)) {
-      return RightCam.kMultiTagStdDevs;
-    }
-    return VecBuilder.fill(1000, 1000, 1000);
-  }
-
-  public Matrix<N3, N1> getkSingleTagStdDevs() {
-    if (LeftCam.kCameraName.equals(camName)) {
-      return LeftCam.kSingleTagStdDevs;
-    }
-    if (RightCam.kCameraName.equals(camName)) {
-      return RightCam.kSingleTagStdDevs;
-    }
-    return VecBuilder.fill(1000, 1000, 1000);
-  }
-
-  public Transform3d getkRobotToCam() {
-    if (LeftCam.kCameraName.equals(camName)) {
-      return LeftCam.kRobotToCam;
-    }
-    if (RightCam.kCameraName.equals(camName)) {
-      return RightCam.kRobotToCam;
-    }
-    return new Transform3d();
-  }
-
+  /* 
   public static class LeftCam {
     public static final String kCameraName = "left";
     public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
@@ -74,4 +56,5 @@ public class CameraConstants {
             new Rotation3d(0, Math.toRadians(5), Math.toRadians(45)));
     public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
   }
+    */
 }

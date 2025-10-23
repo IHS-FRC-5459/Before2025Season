@@ -52,7 +52,7 @@ public class Vision extends SubsystemBase {
 
   //To be implimented. Will update fusedPose and fusedStdDevs
   public void fuse(Pose2d[] poses, Matrix<N3, N1>[] stdDevsArray) {
-    
+     
   }
   public Pose2d getFusedPose() {
     return fusedPose;
@@ -66,31 +66,31 @@ public class Vision extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
-      ArrayList<Matrix> stdDevs = new ArrayList<Matrix>();
-      for (int i = 0; i < cameras.length; i++) {
-        Camera camera = cameras[i];
-        camera.periodic();
-         if (camera.getLatestLocation() != null
-            && camera.getEstStdDevs() != null
-            && camera.canSeeTarget()) {
-          poses.add(camera.getLatestLocation().toPose2d());
-          stdDevs.add(camera.getEstStdDevs());
-        }
+    ArrayList<Matrix> stdDevs = new ArrayList<Matrix>();
+    for (int i = 0; i < cameras.length; i++) {
+      Camera camera = cameras[i];
+      camera.periodic();
+        if (camera.getLatestLocation() != null
+          && camera.getLatestStdDevs() != null
+          && camera.canSeeTarget()) {
+        poses.add(camera.getLatestLocation().toPose2d());
+        stdDevs.add(camera.getLatestStdDevs());
       }
-      Pose2d[] posesArr = poses.toArray(new Pose2d[0]);
-      Matrix[] stdDevsArr = stdDevs.toArray(new Matrix[0]);
-      swerveEstimator.update(pigeon.getRotation2d(), drive.getModulePositions());
-      Logger.recordOutput("photonvisionLogging/pigeonRot", pigeon.getRotation2d().getDegrees());
-
-      if (posesArr.length > 0 && stdDevsArr.length > 0) {
-        fuse(posesArr, stdDevsArr);
-        swerveEstimator.addVisionMeasurement(
-            this.getFusedPose(), Timer.getFPGATimestamp(), this.getFusedStdDevs().times(2));
-        Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", true);
-      } else {
-        Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", false);
-      }
-      // This method will be called once per scheduler run
-      Logger.recordOutput("photonvisionLogging/est Pose", getFusedPose());
+    }
+    Pose2d[] posesArr = poses.toArray(new Pose2d[0]);
+    Matrix[] stdDevsArr = stdDevs.toArray(new Matrix[0]);
+    swerveEstimator.update(pigeon.getRotation2d(), drive.getModulePositions());
+    Logger.recordOutput("photonvisionLogging/pigeonRot", pigeon.getRotation2d().getDegrees());
+ 
+    if (posesArr.length > 0 && stdDevsArr.length > 0) {
+      fuse(posesArr, stdDevsArr);
+      swerveEstimator.addVisionMeasurement(
+          this.getFusedPose(), Timer.getFPGATimestamp(), this.getFusedStdDevs().times(2));
+      Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", true);
+    } else {
+      Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", false);
+    }
+    // This method will be called once per scheduler run
+    Logger.recordOutput("photonvisionLogging/est Pose", getFusedPose());
   }
 }
