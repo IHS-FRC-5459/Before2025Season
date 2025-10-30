@@ -40,10 +40,13 @@ public final class Constants {
 
   public static class Vision {
     public static final String[] cameraNames = {"left", "right"};
-    public static final Translation2d[] moduleTranslations =new Translation2d[]{
+    public static final Translation2d[] moduleTranslations =
+        new Translation2d[] {
+          new Translation2d(), new Translation2d(), new Translation2d(), new Translation2d()
+        };
 
-    };
-    public static final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
+    public static final SwerveDriveKinematics kinematics =
+        new SwerveDriveKinematics(moduleTranslations);
     public static final SwerveModulePosition[] lastModulePositions = // For delta tracking
         new SwerveModulePosition[] {
           new SwerveModulePosition(),

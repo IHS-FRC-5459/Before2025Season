@@ -4,12 +4,19 @@
 
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -17,29 +24,16 @@ import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
-
-import java.util.Optional;
-
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
-
 public class Camera extends SubsystemBase {
   /** Creates a new Camera. */
   CameraConstants constants;
+
   AprilTagFieldLayout kTagLayout;
   PhotonCamera camera;
   private final PhotonPoseEstimator photonEstimator;
 
   public Camera(String kCameraName) {
     constants = CameraConstants.cameras.get(kCameraName);
-
-    // this.swerveEstimator = swerveEstimator;
     if (!Robot.isSimulation()) {
       try {
         Path path = Paths.get("/home/lvuser/deploy/field.json");
@@ -52,18 +46,19 @@ public class Camera extends SubsystemBase {
         System.out.println("Error: " + e);
       }
     }
-    // this.estConsumer = estConsumer;
     camera = new PhotonCamera(constants.kCameraName);
     photonEstimator =
         new PhotonPoseEstimator(
             kTagLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, constants.kRobotToCam);
     photonEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
   }
+
   public String getName() {
     return this.constants.kCameraName;
   }
-  
+
   private Matrix<N3, N1> curStdDevs;
+
   private void updateEstimationStdDevs(
       Optional<EstimatedRobotPose> estimatedPose, List<PhotonTrackedTarget> targets) {
     if (estimatedPose.isEmpty()) {
@@ -108,48 +103,49 @@ public class Camera extends SubsystemBase {
 
   private boolean targetVisible = false;
   private Pose3d latestLocation = new Pose3d();
-  private Matrix<N3,N1> estStdDevs = VecBuilder.fill(1000,1000,1000);
+  private Matrix<N3, N1> estStdDevs = VecBuilder.fill(1000, 1000, 1000);
 
-  public boolean canSeeTarget(){
+  public boolean canSeeTarget() {
     return targetVisible;
   }
+
   private Matrix<N3, N1> getEstimationStdDevs() {
     return curStdDevs;
   }
-  public Matrix<N3,N1> getLatestStdDevs(){
-    if(estStdDevs == null){
+
+  public Matrix<N3, N1> getLatestStdDevs() {
+    if (estStdDevs == null) {
       return null;
     }
     return this.estStdDevs;
   }
+
   public Pose3d getLatestLocation() {
     if (latestLocation == null) {
       return null;
     }
     return this.latestLocation;
   }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     Optional<EstimatedRobotPose> visionEst = Optional.empty();
-      for (var change : camera.getAllUnreadResults()) {
-        Logger.recordOutput("photonvisionLogging/change" + constants.kCameraName, change);
-        visionEst = photonEstimator.update(change);
-        updateEstimationStdDevs(visionEst, change.getTargets());
-        targetVisible = change.getTargets().size() != 0;
-        Logger.recordOutput(
-            "photonvisionLogging/" + constants.kCameraName + "sees target", targetVisible);
-      }
-      visionEst.ifPresent(
-          est -> {
-            // Change our trust in the measurement based on the tags we can see
-            this.latestLocation = est.estimatedPose;
-            this.estStdDevs = getEstimationStdDevs();
-          });
-      // Logger.recordOutput(
-      //    "photonvisionLogging/" + constants.kCameraName + " estStdDevs",
-      // getEstStdDevs().getData());
+    for (var change : camera.getAllUnreadResults()) {
+      Logger.recordOutput("photonvisionLogging/change" + constants.kCameraName, change);
+      visionEst = photonEstimator.update(change);
+      updateEstimationStdDevs(visionEst, change.getTargets());
+      targetVisible = change.getTargets().size() != 0;
       Logger.recordOutput(
-          "photonvisionLogging/" + constants.kCameraName + " latestLocc", getLatestLocation());
+          "photonvisionLogging/" + constants.kCameraName + "sees target", targetVisible);
+    }
+    visionEst.ifPresent(
+        est -> {
+          // Change our trust in the measurement based on the tags we can see
+          this.latestLocation = est.estimatedPose;
+          this.estStdDevs = getEstimationStdDevs();
+        });
+    Logger.recordOutput(
+        "photonvisionLogging/" + constants.kCameraName + " latestLocc", getLatestLocation());
   }
 }

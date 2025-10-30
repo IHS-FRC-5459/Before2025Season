@@ -1,31 +1,27 @@
 package frc.robot.subsystems.vision;
 
-import java.util.HashMap;
-
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import java.util.HashMap;
 
 public class CameraConstants {
   public final String kCameraName;
-    public final Matrix<N3, N1> kMultiTagStdDevs;
-    public final Transform3d kRobotToCam;
-    public final Matrix<N3, N1> kSingleTagStdDevs;
+  public final Matrix<N3, N1> kMultiTagStdDevs;
+  public final Transform3d kRobotToCam;
+  public final Matrix<N3, N1> kSingleTagStdDevs;
 
-    public static final HashMap<String, CameraConstants> cameras = new HashMap<String, CameraConstants>();
-
+  public static final HashMap<String, CameraConstants> cameras =
+      new HashMap<String, CameraConstants>();
 
   public CameraConstants(
-    String kCameraName,
-    Matrix<N3, N1> kMultiTagStdDevs,
-    Transform3d kRobotToCam,
-    Matrix<N3, N1> kSingleTagStdDevs
-  ) {
-   this.kCameraName =kCameraName;
+      String kCameraName,
+      Matrix<N3, N1> kMultiTagStdDevs,
+      Transform3d kRobotToCam,
+      Matrix<N3, N1> kSingleTagStdDevs) {
+    this.kCameraName = kCameraName;
     this.kMultiTagStdDevs = kMultiTagStdDevs;
     this.kRobotToCam = kRobotToCam;
     this.kSingleTagStdDevs = kSingleTagStdDevs;
@@ -36,7 +32,7 @@ public class CameraConstants {
     cameras.put("right", new CameraConstants(null, null, null, null));
   }
 
-  /* 
+  /*
   public static class LeftCam {
     public static final String kCameraName = "left";
     public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);

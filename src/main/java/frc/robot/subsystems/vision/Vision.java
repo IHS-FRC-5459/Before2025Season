@@ -5,7 +5,6 @@
 package frc.robot.subsystems.vision;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
-
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -18,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.Drive;
 import java.util.ArrayList;
-
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -45,15 +43,19 @@ public class Vision extends SubsystemBase {
     this.drive = drive;
 
     swerveEstimator =
-            new SwerveDrivePoseEstimator(Constants.Vision.kinematics, new Rotation2d(), Constants.Vision.lastModulePositions, new Pose2d());
+        new SwerveDrivePoseEstimator(
+            Constants.Vision.kinematics,
+            new Rotation2d(),
+            Constants.Vision.lastModulePositions,
+            new Pose2d());
   }
+
   private Pose2d fusedPose = new Pose2d();
   private Matrix<N3, N1> fusedStdDevs = VecBuilder.fill(0.7, 0.5, 0.2);
 
-  //To be implimented. Will update fusedPose and fusedStdDevs
-  public void fuse(Pose2d[] poses, Matrix<N3, N1>[] stdDevsArray) {
-     
-  } 
+  // To be implimented. Will update fusedPose and fusedStdDevs
+  public void fuse(Pose2d[] poses, Matrix<N3, N1>[] stdDevsArray) {}
+
   public Pose2d getFusedPose() {
     return fusedPose;
   }
@@ -70,7 +72,7 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < cameras.length; i++) {
       Camera camera = cameras[i];
       camera.periodic();
-        if (camera.getLatestLocation() != null
+      if (camera.getLatestLocation() != null
           && camera.getLatestStdDevs() != null
           && camera.canSeeTarget()) {
         poses.add(camera.getLatestLocation().toPose2d());
@@ -81,7 +83,7 @@ public class Vision extends SubsystemBase {
     Matrix[] stdDevsArr = stdDevs.toArray(new Matrix[0]);
     swerveEstimator.update(pigeon.getRotation2d(), drive.getModulePositions());
     Logger.recordOutput("photonvisionLogging/pigeonRot", pigeon.getRotation2d().getDegrees());
- 
+
     if (posesArr.length > 0 && stdDevsArr.length > 0) {
       fuse(posesArr, stdDevsArr);
       swerveEstimator.addVisionMeasurement(
