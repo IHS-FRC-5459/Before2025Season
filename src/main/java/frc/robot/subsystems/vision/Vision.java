@@ -9,6 +9,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -53,61 +54,62 @@ public class Vision extends SubsystemBase {
   private Pose2d fusedPose = new Pose2d();
   private Matrix<N3, N1> fusedStdDevs = VecBuilder.fill(99999, 99999, 99999);
   private boolean fusedPoseUpdated = false;
+  private boolean poseInField(Pose3d pose){
+      // X check
+      double xDeadspace = 0.05; // For each direction
+      if (pose.getX() < 0 - xDeadspace || pose.getX() > 17.5387 + xDeadspace) {
+        return false;
+      }
+      // Y check
+      double yDeadspace = 0.05; // For each direction
+      if (pose.getY() < 0 - yDeadspace || pose.getY() > 8.0518 + yDeadspace) {
+        return false;
+      }
+      //Z check
+      double zDeadspace = 0.05; // For each direction
+      if (pose.getZ() < 0 - zDeadspace || pose.getZ() > 0 + zDeadspace) {
+        return false;
+      }
+      return true;
+  }
   // Check time units
   private double fusedTime = Timer.getFPGATimestamp();
   // Updates fusedPose and fusedStdDevs
   public boolean fuse(Pose2d[] poses, Matrix<N3, N1>[] stdDevs) {
     fusedPoseUpdated = true;
     double possibleTime = Timer.getFPGATimestamp();
-    // Shoudl alwyas be flase, but just in case
+    // Should alwyas be false, but just in case
     if (poses.length != stdDevs.length) {
       Logger.recordOutput("PhotonvisionLogging/Hit length mismatch in fuse", true);
       fusedPoseUpdated = false;
       return false;
     }
-    // First check if each pose is in the field
-    ArrayList<Pose2d> inFieldPoses = new ArrayList<Pose2d>();
-    ArrayList<Matrix> inFieldStdDevs = new ArrayList<Matrix>();
-    for (int i = 0; i < poses.length; i++) {
-      Pose2d pose = poses[i];
-      // X check
-      double xDeadspace = 0.05; // For each direction
-      if (pose.getX() < 0 - xDeadspace || pose.getX() > 17.5387 + xDeadspace) {
-        continue;
-      }
-      // Y check
-      double yDeadspace = 0.05; // For each direction
-      if (pose.getY() < 0 - yDeadspace || pose.getY() > 8.0518 + yDeadspace) {
-        continue;
-      }
-      // Now in field, add it to list
-      inFieldPoses.add(pose);
-      inFieldStdDevs.add(stdDevs[i]);
-    }
-    if (inFieldPoses.size() == 0) {
+    //If length 0 --> Break
+    if (poses.length == 0) {
       Logger.recordOutput("Poses in field length is 0", true);
       fusedPoseUpdated = false;
       return false;
     }
-    if (inFieldPoses.size() == 1) {
-      fusedPose = inFieldPoses.get(0);
-      fusedStdDevs = inFieldStdDevs.get(0);
+    //If just one pose, use that
+    if (poses.length == 1) {
+      fusedPose = poses[0];
+      fusedStdDevs = stdDevs[0];
       fusedPoseUpdated = true;
       fusedTime = possibleTime;
       return true;
     }
     // Use best pose
     double bestAverage = 999999999;
-    Matrix<N3, N1> bestStdDevs = inFieldStdDevs.get(0);
-    Pose2d bestPose = inFieldPoses.get(0);
-    for (int i = 1; i < inFieldStdDevs.size(); i++) {
+    Matrix<N3, N1> bestStdDevs = stdDevs[0];
+    Pose2d bestPose = poses[0];
+    for (int i = 1; i < stdDevs.length; i++) {
       double average =
-          inFieldStdDevs.get(i).elementSum()
-              / (inFieldStdDevs.get(i).getNumRows() * inFieldStdDevs.get(i).getNumCols());
+          stdDevs[i].elementSum()
+              / (stdDevs[i].getNumRows() * stdDevs[i].getNumCols());
       if (average < bestAverage) {
         bestAverage = average;
-        bestStdDevs = inFieldStdDevs.get(i);
-        bestPose = inFieldPoses.get(i);
+        bestStdDevs = stdDevs[i];
+        bestPose = poses[i];
       }
     }
     fusedPoseUpdated = true;
@@ -137,18 +139,23 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < cameras.length; i++) {
       Camera camera = cameras[i];
       camera.periodic();
-      if (camera.getLatestLocation() != null
-          && camera.getLatestStdDevs() != null
+      //These 2 vars could be slightly differnet time-wise
+      Pose3d latestLoc = camera.getLatestLocation();
+      Matrix latestStdDev = camera.getLatestStdDevs();
+      if (latestLoc != null
+          && latestStdDev != null
           && camera.canSeeTarget()) {
-        poses.add(camera.getLatestLocation().toPose2d());
-        stdDevs.add(camera.getLatestStdDevs());
+        if(poseInField(latestLoc)){
+          poses.add(latestLoc.toPose2d());
+          stdDevs.add(latestStdDev);
+        }
       }
     }
     Pose2d[] posesArr = poses.toArray(new Pose2d[0]);
     Matrix[] stdDevsArr = stdDevs.toArray(new Matrix[0]);
     swerveEstimator.update(pigeon.getRotation2d(), drive.getModulePositions());
     Logger.recordOutput("photonvisionLogging/pigeonRot", pigeon.getRotation2d().getDegrees());
-
+    //Most edge cases are checked in fuse
     if (fuse(posesArr, stdDevsArr)) {
       swerveEstimator.addVisionMeasurement(
           this.getFusedPose(), this.getFusedTime(), this.getFusedStdDevs().times(2));
