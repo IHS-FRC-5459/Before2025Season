@@ -46,6 +46,8 @@ public class Camera extends SubsystemBase {
         System.out.println("Error: " + e);
       }
     }
+    System.out.println(
+        "Cmaera constants: " + constants.kCameraName + " : " + constants.kRobotToCam);
     camera = new PhotonCamera(constants.kCameraName);
     photonEstimator =
         new PhotonPoseEstimator(

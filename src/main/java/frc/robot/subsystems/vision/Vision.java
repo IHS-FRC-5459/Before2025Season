@@ -153,6 +153,7 @@ public class Vision extends SubsystemBase {
     }
     Pose2d[] posesArr = poses.toArray(new Pose2d[0]);
     Matrix[] stdDevsArr = stdDevs.toArray(new Matrix[0]);
+    // System.out.println("position: " + drive.getModulePositions()[0]);
     swerveEstimator.update(pigeon.getRotation2d(), drive.getModulePositions());
     Logger.recordOutput("photonvisionLogging/pigeonRot", pigeon.getRotation2d().getDegrees());
     //Most edge cases are checked in fuse
@@ -161,12 +162,15 @@ public class Vision extends SubsystemBase {
           this.getFusedPose(), this.getFusedTime(), this.getFusedStdDevs().times(2));
       Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", true);
     } else {
+      // System.out.println("Fused pose: " + this.getFusedPose().getX());
+      // System.out.println("Fused stdDevs: " + this.getFusedStdDevs().get(0, 0));
+
       swerveEstimator.addVisionMeasurement(
-          this.getFusedPose(), this.getFusedTime(), this.getFusedStdDevs().times(99));
+          this.getFusedPose(), this.getFusedTime(), this.getFusedStdDevs().times(2));
       Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", false);
     }
     // This method will be called once per scheduler run
-    Logger.recordOutput("photonvisionLogging/est Pose", getFusedPose());
+    Logger.recordOutput("photonvisionLogging/est Pose", this.getFusedPose());
   }
 }
 // Ben was here
