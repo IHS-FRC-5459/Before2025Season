@@ -7,15 +7,12 @@ package frc.robot.subsystems.vision;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.subsystems.drive.Drive;
 import java.util.ArrayList;
 import org.littletonrobotics.junction.Logger;
@@ -26,7 +23,6 @@ public class Vision extends SubsystemBase {
 
   Pigeon2 pigeon;
   Drive drive;
-  SwerveDrivePoseEstimator swerveEstimator;
 
   public Vision(String[] cameraNames, Pigeon2 pigeon, Drive drive) {
     // Sets up cameras list
@@ -42,35 +38,29 @@ public class Vision extends SubsystemBase {
 
     this.pigeon = pigeon;
     this.drive = drive;
-
-    swerveEstimator =
-        new SwerveDrivePoseEstimator(
-            Constants.Vision.kinematics,
-            new Rotation2d(),
-            Constants.Vision.lastModulePositions,
-            new Pose2d());
   }
 
   private Pose2d fusedPose = new Pose2d();
   private Matrix<N3, N1> fusedStdDevs = VecBuilder.fill(99999, 99999, 99999);
   private boolean fusedPoseUpdated = false;
-  private boolean poseInField(Pose3d pose){
-      // X check
-      double xDeadspace = 0.05; // For each direction
-      if (pose.getX() < 0 - xDeadspace || pose.getX() > 17.5387 + xDeadspace) {
-        return false;
-      }
-      // Y check
-      double yDeadspace = 0.05; // For each direction
-      if (pose.getY() < 0 - yDeadspace || pose.getY() > 8.0518 + yDeadspace) {
-        return false;
-      }
-      //Z check
-      double zDeadspace = 0.05; // For each direction
-      if (pose.getZ() < 0 - zDeadspace || pose.getZ() > 0 + zDeadspace) {
-        return false;
-      }
-      return true;
+
+  private boolean poseInField(Pose3d pose) {
+    // X check
+    double xDeadspace = 0.05; // For each direction
+    if (pose.getX() < 0 - xDeadspace || pose.getX() > 17.5387 + xDeadspace) {
+      return false;
+    }
+    // Y check
+    double yDeadspace = 0.05; // For each direction
+    if (pose.getY() < 0 - yDeadspace || pose.getY() > 8.0518 + yDeadspace) {
+      return false;
+    }
+    // Z check
+    double zDeadspace = 0.2; // For each direction
+    if (pose.getZ() < 0.095 - zDeadspace || pose.getZ() > 0.095 + zDeadspace) {
+      return false;
+    }
+    return true;
   }
   // Check time units
   private double fusedTime = Timer.getFPGATimestamp();
@@ -84,13 +74,13 @@ public class Vision extends SubsystemBase {
       fusedPoseUpdated = false;
       return false;
     }
-    //If length 0 --> Break
+    // If length 0 --> Break
     if (poses.length == 0) {
       Logger.recordOutput("Poses in field length is 0", true);
       fusedPoseUpdated = false;
       return false;
     }
-    //If just one pose, use that
+    // If just one pose, use that
     if (poses.length == 1) {
       fusedPose = poses[0];
       fusedStdDevs = stdDevs[0];
@@ -104,8 +94,7 @@ public class Vision extends SubsystemBase {
     Pose2d bestPose = poses[0];
     for (int i = 1; i < stdDevs.length; i++) {
       double average =
-          stdDevs[i].elementSum()
-              / (stdDevs[i].getNumRows() * stdDevs[i].getNumCols());
+          stdDevs[i].elementSum() / (stdDevs[i].getNumRows() * stdDevs[i].getNumCols());
       if (average < bestAverage) {
         bestAverage = average;
         bestStdDevs = stdDevs[i];
@@ -139,38 +128,41 @@ public class Vision extends SubsystemBase {
     for (int i = 0; i < cameras.length; i++) {
       Camera camera = cameras[i];
       camera.periodic();
-      //These 2 vars could be slightly differnet time-wise
+      // These 2 vars could be slightly differnet time-wise
       Pose3d latestLoc = camera.getLatestLocation();
       Matrix latestStdDev = camera.getLatestStdDevs();
-      if (latestLoc != null
-          && latestStdDev != null
-          && camera.canSeeTarget()) {
-        if(poseInField(latestLoc)){
+      if (latestLoc != null && latestStdDev != null && camera.canSeeTarget()) {
+        if (poseInField(latestLoc)) {
           poses.add(latestLoc.toPose2d());
           stdDevs.add(latestStdDev);
         }
       }
     }
+
     Pose2d[] posesArr = poses.toArray(new Pose2d[0]);
     Matrix[] stdDevsArr = stdDevs.toArray(new Matrix[0]);
-    // System.out.println("position: " + drive.getModulePositions()[0]);
-    swerveEstimator.update(pigeon.getRotation2d(), drive.getModulePositions());
     Logger.recordOutput("photonvisionLogging/pigeonRot", pigeon.getRotation2d().getDegrees());
-    //Most edge cases are checked in fuse
+    // Most edge cases are checked in fuse
     if (fuse(posesArr, stdDevsArr)) {
-      swerveEstimator.addVisionMeasurement(
-          this.getFusedPose(), this.getFusedTime(), this.getFusedStdDevs().times(2));
+      if (Timer.getMatchTime() >= 3) {
+        drive.addVisionMeasurement(
+            this.getFusedPose(), this.getFusedTime(), this.getFusedStdDevs().div(2));
+      } else {
+        drive.addVisionMeasurement(
+            this.getFusedPose(), this.getFusedTime(), VecBuilder.fill(0, 0, 0));
+      }
       Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", true);
     } else {
+      // System.out.println("No poses");
       // System.out.println("Fused pose: " + this.getFusedPose().getX());
       // System.out.println("Fused stdDevs: " + this.getFusedStdDevs().get(0, 0));
 
-      swerveEstimator.addVisionMeasurement(
-          this.getFusedPose(), this.getFusedTime(), this.getFusedStdDevs().times(2));
+      // drive.addVisionMeasurement(this.getFusedPose(), this.getFusedTime(),
+      // this.getFusedStdDevs());
       Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", false);
     }
     // This method will be called once per scheduler run
-    Logger.recordOutput("photonvisionLogging/est Pose", this.getFusedPose());
+    Logger.recordOutput("photonvisionLogging/est Pose", drive.getPose());
   }
 }
 // Ben was here
