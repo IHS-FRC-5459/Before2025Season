@@ -11,15 +11,27 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "hi"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "B"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "hi"
           }
         }
       ]
     }
   },
-  "resetOdom": true,
+  "resetOdom": false,
   "folder": null,
   "choreoAuto": false
 }

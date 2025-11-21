@@ -33,7 +33,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.vision.Vision;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -45,7 +44,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Vision vision;
+  // private final Vision vision;
   // Sensors
   private Pigeon2 pigeon;
   // Controller
@@ -67,7 +66,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         pigeon = new Pigeon2(Constants.Sensors.Pigeon.id, Constants.Sensors.Pigeon.canbus);
-        vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
+        // vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
         break;
 
       case SIM:
@@ -80,7 +79,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
         pigeon = new Pigeon2(Constants.Sensors.Pigeon.id, Constants.Sensors.Pigeon.canbus);
-        vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
+        // vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
 
         break;
 
@@ -94,7 +93,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         pigeon = new Pigeon2(Constants.Sensors.Pigeon.id, Constants.Sensors.Pigeon.canbus);
-        vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
+        // vision = new Vision(Constants.Vision.cameraNames, pigeon, drive);
 
         break;
     }
