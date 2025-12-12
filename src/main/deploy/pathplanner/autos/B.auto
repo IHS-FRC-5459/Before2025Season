@@ -5,27 +5,21 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "hi"
+            "pathName": "Turn180"
           }
         },
         {
-          "type": "named",
+          "type": "wait",
           "data": {
-            "name": "hi"
+            "waitTime": 0.5
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "B"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "hi"
+            "pathName": "B2"
           }
         }
       ]
