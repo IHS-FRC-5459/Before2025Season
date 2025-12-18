@@ -130,8 +130,8 @@ public class Camera extends SubsystemBase {
     return this.latestLocation;
   }
 
-  public double getLatestTime(){
-      return latestTimestamp;
+  public double getLatestTime() {
+    return latestTimestamp;
   }
 
   @Override

@@ -1,17 +1,13 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
-//Whitespace
+// Whitespace
 package frc.robot.subsystems.vision;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.drive.Drive;
 import java.util.ArrayList;
@@ -81,8 +77,8 @@ public class Vision extends SubsystemBase {
       }
     }
     Logger.recordOutput("photonvisionLogging/pigeonRot", pigeon.getRotation2d().getDegrees());
-    if(poses.size() == stdDevs.size()){
-      for(int i = 0; i < poses.size(); i++){
+    if (poses.size() == stdDevs.size()) {
+      for (int i = 0; i < poses.size(); i++) {
         drive.addVisionMeasurement(poses.get(i), times.get(i), stdDevs.get(i));
       }
     }
