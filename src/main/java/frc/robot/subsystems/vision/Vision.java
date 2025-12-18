@@ -40,10 +40,6 @@ public class Vision extends SubsystemBase {
     this.drive = drive;
   }
 
-  private Pose2d fusedPose = new Pose2d();
-  private Matrix<N3, N1> fusedStdDevs = VecBuilder.fill(99999, 99999, 99999);
-  private boolean fusedPoseUpdated = false;
-
   private boolean poseInField(Pose3d pose) {
     // X check
     double xDeadspace = 0.05; // For each direction
@@ -62,106 +58,34 @@ public class Vision extends SubsystemBase {
     }
     return true;
   }
-  // Check time units
-  private double fusedTime = Timer.getFPGATimestamp();
-  // Updates fusedPose and fusedStdDevs
-  public boolean fuse(Pose2d[] poses, Matrix<N3, N1>[] stdDevs) {
-    fusedPoseUpdated = true;
-    double possibleTime = Timer.getFPGATimestamp();
-    // Should alwyas be false, but just in case
-    if (poses.length != stdDevs.length) {
-      Logger.recordOutput("PhotonvisionLogging/Hit length mismatch in fuse", true);
-      fusedPoseUpdated = false;
-      return false;
-    }
-    // If length 0 --> Break
-    if (poses.length == 0) {
-      Logger.recordOutput("Poses in field length is 0", true);
-      fusedPoseUpdated = false;
-      return false;
-    }
-    // If just one pose, use that
-    if (poses.length == 1) {
-      fusedPose = poses[0];
-      fusedStdDevs = stdDevs[0];
-      fusedPoseUpdated = true;
-      fusedTime = possibleTime;
-      return true;
-    }
-    // Use best pose
-    double bestAverage = 999999999;
-    Matrix<N3, N1> bestStdDevs = stdDevs[0];
-    Pose2d bestPose = poses[0];
-    for (int i = 1; i < stdDevs.length; i++) {
-      double average =
-          stdDevs[i].elementSum() / (stdDevs[i].getNumRows() * stdDevs[i].getNumCols());
-      if (average < bestAverage) {
-        bestAverage = average;
-        bestStdDevs = stdDevs[i];
-        bestPose = poses[i];
-      }
-    }
-    fusedPoseUpdated = true;
-    fusedPose = bestPose;
-    fusedStdDevs = bestStdDevs;
-    fusedTime = possibleTime;
-    return true;
-  }
-
-  public Pose2d getFusedPose() {
-    return fusedPose;
-  }
-
-  public Matrix<N3, N1> getFusedStdDevs() {
-    return fusedStdDevs;
-  }
-
-  public double getFusedTime() {
-    return fusedTime;
-  }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
     ArrayList<Matrix> stdDevs = new ArrayList<Matrix>();
+    ArrayList<Double> times = new ArrayList<Double>();
     for (int i = 0; i < cameras.length; i++) {
       Camera camera = cameras[i];
       camera.periodic();
-      // These 2 vars could be slightly differnet time-wise
+      // These 3 vars could be slightly differnet time-wise
       Pose3d latestLoc = camera.getLatestLocation();
       Matrix latestStdDev = camera.getLatestStdDevs();
+      double latestTime = camera.getLatestTime();
       if (latestLoc != null && latestStdDev != null && camera.canSeeTarget()) {
         if (poseInField(latestLoc)) {
           poses.add(latestLoc.toPose2d());
           stdDevs.add(latestStdDev);
+          times.add(latestTime);
         }
       }
     }
-
-    Pose2d[] posesArr = poses.toArray(new Pose2d[0]);
-    Matrix[] stdDevsArr = stdDevs.toArray(new Matrix[0]);
     Logger.recordOutput("photonvisionLogging/pigeonRot", pigeon.getRotation2d().getDegrees());
-    // Most edge cases are checked in fuse
-    if (fuse(posesArr, stdDevsArr)) {
-      if (Timer.getMatchTime() >= 3) {
-        drive.addVisionMeasurement(
-            this.getFusedPose(), this.getFusedTime(), this.getFusedStdDevs().div(2));
-      } else {
-        drive.addVisionMeasurement(
-            this.getFusedPose(), this.getFusedTime(), VecBuilder.fill(0, 0, 0));
+    if(poses.size() == stdDevs.size()){
+      for(int i = 0; i < poses.size(); i++){
+        drive.addVisionMeasurement(poses.get(i), times.get(i), stdDevs.get(i));
       }
-      Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", true);
-    } else {
-      // System.out.println("No poses");
-      // System.out.println("Fused pose: " + this.getFusedPose().getX());
-      // System.out.println("Fused stdDevs: " + this.getFusedStdDevs().get(0, 0));
-
-      // drive.addVisionMeasurement(this.getFusedPose(), this.getFusedTime(),
-      // this.getFusedStdDevs());
-      Logger.recordOutput("photonvisionLogging/isUpdatingWCameras", false);
     }
-    // This method will be called once per scheduler run
     Logger.recordOutput("photonvisionLogging/est Pose", drive.getPose());
   }
 }

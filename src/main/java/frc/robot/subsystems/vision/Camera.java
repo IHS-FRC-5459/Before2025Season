@@ -31,6 +31,7 @@ public class Camera extends SubsystemBase {
   AprilTagFieldLayout kTagLayout;
   PhotonCamera camera;
   private final PhotonPoseEstimator photonEstimator;
+  private double latestTimestamp = 0.0;
 
   public Camera(String kCameraName) {
     constants = CameraConstants.cameras.get(kCameraName);
@@ -129,6 +130,10 @@ public class Camera extends SubsystemBase {
     return this.latestLocation;
   }
 
+  public double getLatestTime(){
+      return latestTimestamp;
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
@@ -146,6 +151,7 @@ public class Camera extends SubsystemBase {
           // Change our trust in the measurement based on the tags we can see
           this.latestLocation = est.estimatedPose;
           this.estStdDevs = getEstimationStdDevs();
+          this.latestTimestamp = est.timestampSeconds;
         });
     Logger.recordOutput(
         "photonvisionLogging/" + constants.kCameraName + " latestLocc", getLatestLocation());
