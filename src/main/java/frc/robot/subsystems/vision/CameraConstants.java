@@ -2,7 +2,9 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import java.util.HashMap;
@@ -28,18 +30,29 @@ public class CameraConstants {
   }
 
   static {
-    cameras.put("left", new CameraConstants("left", VecBuilder.fill(0.5, 0.5, 1), null, null));
-    cameras.put("right", new CameraConstants(null, null, null, null));
+    cameras.put(
+        "left",
+        new CameraConstants(
+            LeftCam.kCameraName,
+            LeftCam.kMultiTagStdDevs,
+            LeftCam.kRobotToCam,
+            LeftCam.kSingleTagStdDevs));
+    cameras.put(
+        "right",
+        new CameraConstants(
+            RightCam.kCameraName,
+            RightCam.kMultiTagStdDevs,
+            RightCam.kRobotToCam,
+            RightCam.kSingleTagStdDevs));
   }
 
-  /*
   public static class LeftCam {
     public static final String kCameraName = "left";
     public static final Matrix<N3, N1> kMultiTagStdDevs = VecBuilder.fill(0.5, 0.5, 1);
     public static final Transform3d kRobotToCam =
         new Transform3d(
             new Translation3d(0.33655, 0.2587625, 0.2778125),
-            new Rotation3d(0, Math.toRadians(5), Math.toRadians(-45)));
+            new Rotation3d(0, Math.toRadians(5), Math.toRadians(-15)));
     public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
   }
 
@@ -49,8 +62,7 @@ public class CameraConstants {
     public static final Transform3d kRobotToCam =
         new Transform3d(
             new Translation3d(0.358775, -0.2682875, 0.27305),
-            new Rotation3d(0, Math.toRadians(5), Math.toRadians(45)));
+            new Rotation3d(0, Math.toRadians(5), Math.toRadians(15)));
     public static final Matrix<N3, N1> kSingleTagStdDevs = VecBuilder.fill(4, 4, 8);
   }
-    */
 }

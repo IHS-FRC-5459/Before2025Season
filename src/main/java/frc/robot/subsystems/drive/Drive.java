@@ -131,7 +131,7 @@ public class Drive extends SubsystemBase {
         this::getChassisSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
-            new PIDConstants(2.0, 0.0, 0.0), new PIDConstants(100, 0.0, 0.1)),
+            new PIDConstants(0.75, 0.0, 0.0), new PIDConstants(0.5, 0.0, 0)),
         PP_CONFIG,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
         this);
@@ -215,6 +215,7 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+    Logger.recordOutput("Est pose drive subsystem", poseEstimator.getEstimatedPosition());
   }
 
   /**
