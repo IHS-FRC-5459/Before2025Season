@@ -38,17 +38,17 @@ public class Vision extends SubsystemBase {
 
   private boolean poseInField(Pose3d pose) {
     // X check
-    double xDeadspace = 0.05; // For each direction
+    double xDeadspace = 0.1; // For each direction
     if (pose.getX() < 0 - xDeadspace || pose.getX() > 17.5387 + xDeadspace) {
       return false;
     }
     // Y check
-    double yDeadspace = 0.05; // For each direction
+    double yDeadspace = 0.1; // For each direction
     if (pose.getY() < 0 - yDeadspace || pose.getY() > 8.0518 + yDeadspace) {
       return false;
     }
     // Z check
-    double zDeadspace = 0.2; // For each direction
+    double zDeadspace = 0.8; // For each direction
     if (pose.getZ() < 0.095 - zDeadspace || pose.getZ() > 0.095 + zDeadspace) {
       return false;
     }
@@ -62,6 +62,7 @@ public class Vision extends SubsystemBase {
     ArrayList<Matrix> stdDevs = new ArrayList<Matrix>();
     ArrayList<Double> times = new ArrayList<Double>();
     for (int i = 0; i < cameras.length; i++) {
+      Logger.recordOutput("photonvisionLogging/check2", true);
       Camera camera = cameras[i];
       camera.periodic();
       // These 3 vars could be slightly differnet time-wise
@@ -73,6 +74,9 @@ public class Vision extends SubsystemBase {
           poses.add(latestLoc.toPose2d());
           stdDevs.add(latestStdDev);
           times.add(latestTime);
+          Logger.recordOutput("photonvisionLogging/check1", true);
+        } else {
+          Logger.recordOutput("photonvisionLogging/check1", false);
         }
       }
     }
